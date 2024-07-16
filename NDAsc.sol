@@ -12,14 +12,18 @@ contract SmartLegalContract {
     // Evento emesso quando un firmatario firma
     event SignerSigned(address indexed signer);
 
-    // URL della risorsa
-    string private resourceUrl;
+    // URL della risorsa principale
+    string private mainResourceUrl;
 
-    // Costruttore per impostare gli indirizzi dei firmatari richiesti e l'URL della risorsa
-    constructor(address _requiredSigner1, address _requiredSigner2, string memory _resourceUrl) {
+    // URL della risorsa accessibile senza firma
+    string private unseenResourceUrl;
+
+    // Costruttore per impostare gli indirizzi dei firmatari richiesti e gli URL delle risorse
+    constructor(address _requiredSigner1, address _requiredSigner2, string memory _mainResourceUrl, string memory _unseenResourceUrl) {
         requiredSigner1 = _requiredSigner1;
         requiredSigner2 = _requiredSigner2;
-        resourceUrl = _resourceUrl;
+        mainResourceUrl = _mainResourceUrl;
+        unseenResourceUrl = _unseenResourceUrl;
     }
 
     // Funzione per firmare lo smart contract
@@ -36,11 +40,19 @@ contract SmartLegalContract {
         return hasSigned[requiredSigner1] && hasSigned[requiredSigner2];
     }
 
-    // Funzione per accedere alla risorsa (solo se entrambi i firmatari hanno firmato)
-    function accessResource() external view returns (string memory) {
+    // Funzione per accedere alla risorsa principale (solo se entrambi i firmatari hanno firmato)
+    function accessMainResource() external view returns (string memory) {
         require(haveRequiredSignersSigned(), "Required signers have not signed");
         
-        // Restituisce l'URL della risorsa
-        return resourceUrl;
+        // Restituisce l'URL della risorsa principale
+        return mainResourceUrl;
+    }
+
+    // Funzione per accedere alla risorsa non vista (accessibile solo ai firmatari anche senza firma)
+    function accessUnseenResource() external view returns (string memory) {
+        require(msg.sender == requiredSigner1 || msg.sender == requiredSigner2, "Unauthorized access");
+        
+        // Restituisce l'URL della risorsa non vista
+        return unseenResourceUrl;
     }
 }
